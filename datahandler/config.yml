@@ -1,0 +1,25 @@
+
+connection:
+  mqtt:
+    address: "ali.cnworkshop.xyz"
+    port: 20000
+  redis:
+    address: "ali.cnworkshop.xyz"
+    port: 20001
+
+node:
+  uid: "8b5018b4"
+
+
+log:
+  dataHandler:
+    level: 
+  
+
+
+
+
+
+
+
+
