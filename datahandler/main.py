@@ -165,5 +165,9 @@ def run():
     hFilterThread = threading.Thread(target=dataHandle)
     hFilterThread.start()
 
+    hMqttThread = threading.Thread(
+        target=functools.partial(MqttPublish, mqttClient))
+    hMqttThread.start()
+    
     execInfo = QFatal.get()
     logging.critical("Fatal Error, exit whole program:{0}".format(execInfo))
