@@ -10,11 +10,12 @@ connection:
 node:
   uid: "8b5018b4"
 
+rpc:
+  execPath: "../rpcExectuable"
 
 log:
   dataHandler:
     level: 
-  
 
 
 

@@ -15,6 +15,7 @@ from datahandler.redis import PollingRedisMessage
 
 from datahandler.connector import getMqttclient, getRedisClient
 from datahandler.endpoint import MqttPublish
+from datahandler.rpc import RpcExectuator
 
 
 # logging setting
@@ -55,6 +56,7 @@ def run():
         QFatal=Queue(),
         QRedis=Queue(),
         QMqttPub=Queue(),
+        QRPC=Queue(),
     )
 
     QFatal = QSet.requireQueue('QFatal')
@@ -72,6 +74,12 @@ def run():
     hMqttThread = threading.Thread(
         target=functools.partial(MqttPublish, mqttClient))
     hMqttThread.start()
+
+    # this thread to get RPC Info
+    hRpcThread = threading.Thread(
+        target=functools.partial(RpcExectuator,RPC_DIR)
+    )
+    hRpcThread.start()
 
     execInfo = QFatal.get()
     logging.critical("Fatal Error, exit whole program:{0}".format(execInfo))

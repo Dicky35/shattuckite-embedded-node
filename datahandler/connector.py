@@ -42,14 +42,10 @@ def getMqttclient(conf=None)->client.Client:
     global _mqttClient
     if _mqttClient is not None:
         return _mqttClient
-    BASE_DIR = os.path.dirname(__file__)
-    RPC_DIR = os.path.abspath(
-        "{base}/{rpc}".format(base=BASE_DIR, rpc=conf['rpc']['execPath']))
 
     _mqttClient = client.Client(client_id=conf['node']['uid'])
     _mqttClient.on_connect = onMQTTConnected
-    _mqttClient.on_message = functools.partial(
-        onMQTTDataReceived, rpcPath=RPC_DIR)
+    _mqttClient.on_message = onMQTTDataReceived
 
     _mqttClient.loop_start()
 

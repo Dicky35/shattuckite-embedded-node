@@ -1,4 +1,7 @@
 from datahandler import queueset as QSet
+from paho.mqtt.client import Client,MQTTMessage  
+from common.deserializer import Deserializer
+from common.execption import DataFormatError
 import logging
 import sys
 
@@ -11,7 +14,7 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-def onMQTTConnected(client, data, flas, rc):
+def onMQTTConnected(client:Client, data, flas, rc):
     """Mqtt服务器连接成功回调函数
 
     :param client: paho mqtt对象
@@ -23,10 +26,13 @@ def onMQTTConnected(client, data, flas, rc):
     :param rc: 连接结果
     :type rc: Int
     """
+    
+    # TODO: hardcoded Topic. need make it configuable later
+    client.subscribe("testHome/rpc",qos=2)
     logger.info('successfully connect to remote mqtt broker')
 
 
-def onMQTTDataReceived(client, userdata, message):
+def onMQTTDataReceived(client:Client, userdata, message:MQTTMessage):
     """接收到Mqtt消息后的回调.
 
     :param client: paho mqtt对象
@@ -36,8 +42,13 @@ def onMQTTDataReceived(client, userdata, message):
     :param message: Mqtt broker转发的消息
     :type message: obj
     """
-    pass
-
+    QRPC = QSet.requireQueue('QRPC')
+    try:
+        msgObj = Deserializer(message.payload)
+        QRPC.put(msgObj)
+        logger.debug("get message {0}".format(msgObj))
+    except DataFormatError:
+        logger.error("mqtt message deserialize failed, raw:{0}".format(message.payload))
 
 
 def MqttPublish(mqttClient):
