@@ -1,7 +1,4 @@
-from paho.mqtt import client
-import redis
 import sys
-import asyncio
 import argparse
 import yaml
 import logging
@@ -11,10 +8,13 @@ import functools
 from jsonschema import validate
 from queue import Queue
 from datahandler import queueset as QSet
+import os
 
 from datahandler.datahandle import DataHandleFlow
 from datahandler.redis import PollingRedisMessage
-from datahandler.endpoint import onMQTTConnected,MqttPublish,onMQTTDataReceived
+
+from datahandler.connector import getMqttclient, getRedisClient
+from datahandler.endpoint import MqttPublish
 
 
 # logging setting
@@ -33,37 +33,24 @@ parser.add_argument('--config', '-c', type=argparse.FileType('r'),
                     help="shattuckite datahandler config file", required=True)
 
 
-
 def run():
     args = parser.parse_args()
     conf = yaml.safe_load(args.config)
     logger.info("system start")
-    mqttClient = client.Client(client_id=conf['node']['uid'])
-    mqttClient.on_connect = onMQTTConnected
-    mqttClient.on_message = onMQTTDataReceived
 
-    logger.info("connecting to mqtt broker:{addr}:{port}".format(
-        addr=conf['connection']['mqtt']['address'], port=conf['connection']['mqtt']['port']))
+    BASE_DIR = os.path.dirname(__file__)
+    RPC_DIR = os.path.abspath(
+        "{base}/{rpc}".format(base=BASE_DIR, rpc=conf['rpc']['execPath']))
 
-    mqttClient.connect(host=conf['connection']['mqtt']['address'],
-                       port=conf['connection']['mqtt']['port'],
-                       keepalive=conf['connection']['mqtt'].get('keepalive', 60))
+    logger.info("run at {0}".format(BASE_DIR))
+    logger.info("RPC exec path at {0}".format(RPC_DIR))
 
-    # redis connect was blocking
-    logger.info("connecting to local redis kv database:{addr}:{port}".format(
-        addr=conf['connection']['redis']['address'], port=conf['connection']['redis']['port']))
-
-    redisClient = redis.Redis(
-        host=conf['connection']['redis']['address'], port=conf['connection']['redis']['port'])
-
-    logger.info("successfully connect to local redis".format(
-        addr=conf['connection']['redis']['address'], port=conf['connection']['redis']['port']))
-
-    hRedisPubSub = redisClient.pubsub()
-    hRedisPubSub.subscribe('data')
+    hRedisPubSub = getRedisClient(conf)
+    print(hRedisPubSub)
+    mqttClient = getMqttclient(conf)
+    print(mqttClient)
 
     # this thread  to handle  mqtt network communication
-    mqttClient.loop_start()
     QSet.setMultipleQueue(
         QFatal=Queue(),
         QRedis=Queue(),
@@ -81,9 +68,10 @@ def run():
     hFilterThread = threading.Thread(target=DataHandleFlow)
     hFilterThread.start()
 
+    # this thread to  publish data to mqtt
     hMqttThread = threading.Thread(
         target=functools.partial(MqttPublish, mqttClient))
     hMqttThread.start()
-    
+
     execInfo = QFatal.get()
     logging.critical("Fatal Error, exit whole program:{0}".format(execInfo))
