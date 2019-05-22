@@ -26,7 +26,8 @@ async def iamSensor(sensorId):
         gMQ.put(
             {
                 "type": "sensor",
-                "patload": {
+                "UUID": "8b5018b4",
+                "payload": {
                     "timestamp": datetime.datetime.utcnow().timestamp(),
                     "value": "{0:.2f}".format(random.randint(15, 40)+random.random()),
                     "sensorId": sensorId
