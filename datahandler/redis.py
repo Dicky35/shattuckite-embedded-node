@@ -1,5 +1,6 @@
 from datahandler import queueset as QSet
 import logging
+import time
 import sys
 
 
@@ -34,4 +35,6 @@ def PollingRedisMessage(hPubsub):
         message = hPubsub.get_message()
         if message is not None:
             QRedis.put(message)
+            # be nice to system
+            time.sleep(0.01)
     
