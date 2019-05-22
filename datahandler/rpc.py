@@ -40,7 +40,13 @@ def __ExternalRPCExecuator(ExecPath, rpcReq):
         raise RPCExectuableNotFound
     else:
         # type:subprocess.Popen
-        with subprocess.Popen(args=[fullName], stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True) as proc:
+        args=[fullName,]
+        for kv in rpcReq['parameter']:
+            args.append(kv['key'])
+            args.append(kv['value'])
+        print(args)
+
+        with subprocess.Popen(args=args, stderr=subprocess.PIPE, stdout=subprocess.PIPE ) as proc:
             proc: subprocess.Popen
             outs, errs = proc.communicate(timeout=15)
             if proc.returncode != 0:  # RPC return errorCode
