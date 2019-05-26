@@ -47,8 +47,8 @@ def __ExternalRPCExecuator(ExecPath, rpcReq):
         print(args)
 
         with subprocess.Popen(args=args, stderr=subprocess.PIPE, stdout=subprocess.PIPE ) as proc:
-            proc: subprocess.Popen
-            outs, errs = proc.communicate(timeout=15)
+            # proc: subprocess.Popen
+            outs, errs = proc.communicate(timeout=5)
             if proc.returncode != 0:  # RPC return errorCode
                 __RPCResponse({
                     "id": rpcReq['id'],
