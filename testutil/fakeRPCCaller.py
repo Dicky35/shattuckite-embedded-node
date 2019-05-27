@@ -9,7 +9,7 @@ queue = getMqttMsgQueue()
 
 #TODO: hardcoded Topic name
 
-fakeRPCRequest={
+HelloWorldRPCReq={
     "type":"external",
     "name":"helloworld",
     "id":"testhash",
@@ -25,10 +25,29 @@ fakeRPCRequest={
     ]
 }
 
+ParameterizedRPCRea={
+    "type":"external",
+    "name":"paramEcho",
+    "id":"testhash",
+    "parameter":[
+        {
+            "key":"tParam1",
+            "value":"v1",
+        },
+        {
+            "key":"tParam2",
+            "value":"v2",
+        }
+    ]
+}
+
 while True:
-    client.publish('testHome/rpc',payload=Serializer(fakeRPCRequest),qos=2)
+    client.publish('testHome/rpc',payload=Serializer(HelloWorldRPCReq),qos=2)
+    msg=queue.get() #type: MQTTMessage
+    print(msg.payload)
+
+    client.publish('testHome/rpc',payload=Serializer(ParameterizedRPCRea),qos=2)
     msg=queue.get() #type: MQTTMessage
     print(msg.payload)
     time.sleep(2)
-
 
