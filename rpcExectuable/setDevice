@@ -1,0 +1,10 @@
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--address',type=int)
+parser.add_argument('--value',type=int)
+
+with open('/tmp/shattuckite/lora.ipc.cmd','w') as loraPipe:
+    args=parser.parse_args()
+    loraPipe.write("1:{addr}:{value}\n".format(addr=args.address,value=args.value))
+

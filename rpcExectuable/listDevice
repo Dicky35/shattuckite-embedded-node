@@ -1,0 +1,19 @@
+import argparse
+import threading
+from sys import stdout
+
+
+def blockingRead ():
+    with open('/tmp/shattuckite/lora.ipc.device','r') as loraDevice:
+        a=loraDevice.readlines()
+        stdout.write(''.join(a))
+
+read= threading.Thread(target=blockingRead)
+with open('/tmp/shattuckite/lora.ipc.cmd','w') as loraPipe:
+    read.start()
+    loraPipe.write("0:0:0\n")
+
+
+
+
+
