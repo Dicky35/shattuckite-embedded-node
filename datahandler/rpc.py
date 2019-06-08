@@ -13,6 +13,7 @@ formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+threshold=5
 
 
 class RPCExectuableNotFound(Exception):
@@ -24,6 +25,10 @@ def RpcExectuator(ExecPath):
     logger.info("start thread to handle RPC Request")
     while True:
         rpcReq = QRPC.get()
+        try:
+            threshold=int(rpcReq['Timeout'])
+        except KeyError:
+            threshold=5
         try:
             if(rpcReq['type'] == 'external'):
                 __ExternalRPCExecuator(ExecPath, rpcReq)
@@ -48,7 +53,7 @@ def __ExternalRPCExecuator(ExecPath, rpcReq):
 
         with subprocess.Popen(args=args, stderr=subprocess.PIPE, stdout=subprocess.PIPE ) as proc:
             # proc: subprocess.Popen
-            outs, errs = proc.communicate(timeout=5)
+            outs, errs = proc.communicate(timeout=threshold)
             if proc.returncode != 0:  # RPC return errorCode
                 __RPCResponse({
                     "id": rpcReq['id'],
