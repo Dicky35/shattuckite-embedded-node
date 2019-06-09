@@ -35,6 +35,10 @@ def RpcExectuator(ExecPath):
 
 def __ExternalRPCExecuator(ExecPath, rpcReq):
     fullName = "{0}/{1}".format(ExecPath, rpcReq['name'])
+    try:
+        threshold=int(rpcReq.get('Timeout',default=5))
+    except ValueError:
+        threshold=5
     if not __isExternelExecExist(fullName):
         logger.error("")
         raise RPCExectuableNotFound
@@ -48,7 +52,7 @@ def __ExternalRPCExecuator(ExecPath, rpcReq):
 
         with subprocess.Popen(args=args, stderr=subprocess.PIPE, stdout=subprocess.PIPE ) as proc:
             # proc: subprocess.Popen
-            outs, errs = proc.communicate(timeout=5)
+            outs, errs = proc.communicate(timeout=threshold)
             if proc.returncode != 0:  # RPC return errorCode
                 __RPCResponse({
                     "id": rpcReq['id'],
