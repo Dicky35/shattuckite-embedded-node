@@ -20,20 +20,25 @@ class RPCExectuableNotFound(Exception):
 
 
 def RpcExectuator(ExecPath):
+    threshold=5
     QRPC = QSet.requireQueue("QRPC")
     logger.info("start thread to handle RPC Request")
     while True:
         rpcReq = QRPC.get()
         try:
+            threshold=int(rpcReq.get('TImeout',default=5))
+        except ValueError:
+            logger.error("rpc request : timeout format error")
+        try:
             if(rpcReq['type'] == 'external'):
-                __ExternalRPCExecuator(ExecPath, rpcReq)
+                __ExternalRPCExecuator(ExecPath, rpcReq,threshold)
         except KeyError:
             logger.error("rpc request format error")
         except RPCExectuableNotFound:
             logger.error("rpc exectuable not found")
 
 
-def __ExternalRPCExecuator(ExecPath, rpcReq):
+def __ExternalRPCExecuator(ExecPath, rpcReq,threshold):
     fullName = "{0}/{1}".format(ExecPath, rpcReq['name'])
     if not __isExternelExecExist(fullName):
         logger.error("")
@@ -48,7 +53,7 @@ def __ExternalRPCExecuator(ExecPath, rpcReq):
 
         with subprocess.Popen(args=args, stderr=subprocess.PIPE, stdout=subprocess.PIPE ) as proc:
             # proc: subprocess.Popen
-            outs, errs = proc.communicate(timeout=5)
+            outs, errs = proc.communicate(timeout=threshold)
             if proc.returncode != 0:  # RPC return errorCode
                 __RPCResponse({
                     "id": rpcReq['id'],
